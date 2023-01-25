@@ -1,2 +1,3 @@
 src/config.js
 tempDB/temp.sql
+node_modules
