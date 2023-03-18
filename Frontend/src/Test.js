@@ -1,12 +1,19 @@
-import { ToastContainer, toast } from 'react-toastify';
+import { useQueryClient } from '@tanstack/react-query';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Test = () => {
-  const notify = () => toast('yooo');
+  const query = useQueryClient();
   return (
     <div>
-      Toast
-      <button onClick={notify}>pop up</button>
+      <button
+        onClick={() => {
+          console.log(
+            query.getQueryCache().queries[0]?.state?.data?.studentDetails
+          );
+        }}
+      >
+        On
+      </button>
     </div>
   );
 };

@@ -16,7 +16,9 @@ const SetPassword = () => {
   const setPasswordMutation = useMutation(setPassword, {
     onSuccess: (data) => {
       toast('Password set.');
-      navigate(data.admin ? '/admin' : '/student', { replace: true });
+      navigate(data.admin ? '/admin' : '/student' + data.link, {
+        replace: false,
+      });
     },
     onError: (err) => {
       errorHandler(err, navigate);

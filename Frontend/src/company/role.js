@@ -1,3 +1,5 @@
+import { backendHost } from '../Config';
+
 export const getRoleDetails = async (roleProfileLink) => {
   const res = await fetch(roleProfileLink, {
     method: 'GET',
@@ -11,7 +13,11 @@ export const getRoleDetails = async (roleProfileLink) => {
   return res.json();
 };
 
-export const setRoleDetails = async ({ roleProfileLink, roleDet }) => {
+export const setRoleDetails = async ({
+  roleProfileLink,
+  roleDet,
+  eligibleBranches,
+}) => {
   const res = await fetch(roleProfileLink, {
     method: 'PATCH',
     headers: {
@@ -19,7 +25,7 @@ export const setRoleDetails = async ({ roleProfileLink, roleDet }) => {
     },
     credentials: 'include',
 
-    body: JSON.stringify({ roleDet }),
+    body: JSON.stringify({ roleDet, eligibleBranches }),
   });
   if (!res.ok) {
     const err = new Error((await res.json()).message);
@@ -29,7 +35,24 @@ export const setRoleDetails = async ({ roleProfileLink, roleDet }) => {
   return res.json();
 };
 
-export const addRoleDetails = async ({ addRoleLink, roleDet }) => {
+export const deleteRole = async ({ roleId }) => {
+  const res = await fetch(`${backendHost}/admin/company/role/${roleId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const err = new Error((await res.json()).message);
+    err.code = res.status;
+    throw err;
+  }
+  return;
+};
+
+export const addRoleDetails = async ({
+  addRoleLink,
+  roleDet,
+  eligibleBranches,
+}) => {
   const res = await fetch(addRoleLink, {
     method: 'POST',
     headers: {
@@ -37,7 +60,7 @@ export const addRoleDetails = async ({ addRoleLink, roleDet }) => {
     },
     credentials: 'include',
 
-    body: JSON.stringify({ roleDet }),
+    body: JSON.stringify({ roleDet, eligibleBranches }),
   });
   if (!res.ok) {
     const err = new Error((await res.json()).message);

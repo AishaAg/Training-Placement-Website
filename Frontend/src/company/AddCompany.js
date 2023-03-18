@@ -14,7 +14,7 @@ const AddCompany = () => {
     onSuccess: (data) => {
       toast('Details saved.');
       navigate(`/admin/company/${data.companyId}`, {
-        replace: true,
+        replace: false,
       });
     },
     onError: (err) => {

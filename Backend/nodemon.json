@@ -7,7 +7,12 @@
 	},
 
 	"runOnChangeOnly": false,
-	"watch": ["src/**/*.js", "tempDB/*.sql", "db/**/*.js"],
+	"watch": [
+		"src/**/*.js",
+		"tempDB/*.sql",
+		"db/**/*.js",
+		"dummyDataGenerator/*.js"
+	],
 	"env": {
 		"NODE_ENV": "development"
 	},

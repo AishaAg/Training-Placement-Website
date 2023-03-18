@@ -7,6 +7,5 @@ const pool = new pg.Pool({
 	host: 'localhost',
 	port: 5432,
 });
-console.log('pool here');
 
 export default pool;

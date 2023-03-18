@@ -11,8 +11,14 @@ import testRouter from './test';
 import cookieParser from 'cookie-parser';
 import { body } from 'express-validator';
 import validator from './helpers/validator';
+import fileUpload from 'express-fileupload';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
+
+export const seed = Math.round(Math.random() * 1e10);
 
 // Default middlewares
 app.disable('x-powered-by');
@@ -26,6 +32,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(fileUpload());
 
 // Authentication routes
 app.post('/send-signup-mail', sendSignupMail);

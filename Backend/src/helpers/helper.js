@@ -3,9 +3,10 @@ import { key } from '../config.js';
 import bcrypt from 'bcrypt';
 import pool from '../../db/dbConnection.js';
 import queries from '../../db/queries.js';
+import { seed } from '../server.js';
 
 export const createToken = (payload, timeOut = '15m') => {
-	const jwtToken = jwt.sign(payload, key, {
+	const jwtToken = jwt.sign(Object.assign(payload, { seed: seed }), key, {
 		expiresIn: '2h',
 	});
 	return jwtToken;
@@ -14,6 +15,12 @@ export const createToken = (payload, timeOut = '15m') => {
 export const verifyToken = (req, res, next) => {
 	try {
 		req.det = jwt.verify(req.cookies.token, key);
+		// TODO
+		// if (req.det.seed !== seed) {
+		// 	return res
+		// 		.status(401)
+		// 		.json({ message: 'Some internal error occured. Please login again.' });
+		// }
 		req.det.admin = req.det.user === 'admin';
 
 		next();
@@ -40,6 +47,28 @@ export const isValidLT = (req, res, next) => {
 	}
 	next();
 };
+
+export const getAdminVerifiedAndBlocked = async (req, res, next) => {
+	try {
+		const user = await pool.query(queries.getAdminVerifiedAndBlocked, [
+			req.det.user,
+		]);
+		if (user.rowCount === 0)
+			return res.status(404).json({ message: 'Enrollment number not found.' });
+		Object.assign(req.det, user.rows[0]);
+		if (req.det.blocked) {
+			return res.status(403).json({
+				message: 'User blocked. Please contact the TPO.',
+				link: '/login',
+			});
+		}
+		next();
+	} catch (e) {
+		console.log(e);
+		res.status(500).json({ message: 'Server error.' });
+	}
+};
+
 export const isValidOTU = async (req, res, next) => {
 	try {
 		req.det = jwt.verify(req.headers.token, key);
@@ -78,3 +107,21 @@ export const hashPassword = async (password) => {
 export const verifyPassword = async (inputPass, correctPass) => {
 	return await bcrypt.compare(inputPass, correctPass);
 };
+
+// export const getBranchId = (branch) => {
+// const branches = [
+// 'Applied Chemistry',
+// 'Applied Mathematics',
+// 'Applied Physics',
+// 'Artificial Intelligence Engineering',
+// 'Civil Engineering',
+// 'Computer Science & Engineering',
+// 'Electrical Engineering',
+// 'Electronics and Telecommunication Engineering',
+// 'Industrial and Production Engineering',
+// 'Information Technology Engineering',
+// 'Mechanical Engineering',
+// 'Mechatronics Engineering',
+// ];
+// return branches.indexOf()
+// };

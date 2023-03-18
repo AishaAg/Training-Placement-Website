@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import errorHandler from '../error/errors.js';
 import Loading from '../Loading.js';
 import { login } from './auth.js';
@@ -10,8 +9,8 @@ const Login = () => {
 
   const loginMutation = useMutation(login, {
     onSuccess: (data) => {
-      navigate(data.admin ? '/admin' : '/student', {
-        replace: true,
+      navigate(data.admin ? '/admin' : `/student${data.link}`, {
+        replace: false,
       });
     },
     onError: (err) => {
@@ -35,7 +34,7 @@ const Login = () => {
       >
         <label htmlFor="email">
           Email or Enrollment number:
-          <input name="user" />
+          <input name="user" autoComplete="off" autoFocus />
         </label>
         <br />
         <label htmlFor="password">

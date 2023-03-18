@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { backendHost } from './Config';
 import { toast } from 'react-toastify';
 
@@ -20,7 +20,7 @@ const Home = () => {
         const response = await res.json();
         toast(response.message);
         if (res.status === 401 || res.status === 498) {
-          navigate('/login', { replace: true });
+          navigate('/login', { replace: false });
         }
       }
     } catch (e) {

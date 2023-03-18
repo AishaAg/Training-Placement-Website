@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { backendHost } from '../Config';
+import { backendHost, branches } from '../Config';
 import errorHandler from '../error/errors';
 import { extractFormData } from '../helper/helpers';
 import Loading from '../Loading';
@@ -13,6 +14,8 @@ const AddRole = () => {
   const { company_id } = useParams();
   const addRoleLink = `${backendHost}/admin/company/${company_id}/role/`;
   const companyProfileLink = `${backendHost}/admin/company/${company_id}`;
+
+  const [selectAll, setSelectAll] = useState(false);
 
   const companyProfileQuery = useQuery(
     ['companyProfile', company_id],
@@ -29,9 +32,8 @@ const AddRole = () => {
   const roleProfileMutation = useMutation(addRoleDetails, {
     onSuccess: (data) => {
       toast('Details saved.');
-      console.log(data);
-      navigate(`/admin/company/${company_id}/role/${data.roleId}`, {
-        replace: true,
+      navigate(`/admin/company/role/${data.roleId}`, {
+        replace: false,
       });
     },
     onError: (err) => {
@@ -41,8 +43,19 @@ const AddRole = () => {
 
   const submitForm = async (event) => {
     event.preventDefault();
+    const eligibleBranches = Object.fromEntries(
+      Array.from(event.target.querySelectorAll('input[type="checkbox"]')).map(
+        (ele) => [`_${ele.id}`, ele.checked]
+      )
+    );
     const roleDet = extractFormData(event.target);
-    roleProfileMutation.mutate({ addRoleLink, roleDet });
+    roleDet.deadline = roleDet.deadline.split('T').join(' ') + ':00';
+    roleDet.active_backlogs = roleDet.active_backlogs || Infinity;
+    roleProfileMutation.mutate({
+      addRoleLink,
+      roleDet,
+      eligibleBranches: eligibleBranches,
+    });
   };
 
   return companyProfileQuery.isLoading ? (
@@ -77,7 +90,29 @@ const AddRole = () => {
         <br />
         <label htmlFor="eligibleBranches">
           Eligible Branches:
-          <input type="text" name="eligible_branches" defaultValue={''} />
+          <br />
+          <div>
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  branches.forEach((_, ind) => {
+                    document.getElementById(ind).checked = !selectAll;
+                  });
+                  setSelectAll(!selectAll);
+                }}
+              >
+                Select {!selectAll ? 'All' : 'None'}
+              </button>
+            </div>
+            {branches.map((branch, ind) => {
+              return (
+                <div key={ind}>
+                  <input id={ind} type={'checkbox'} /> {branch} <br />
+                </div>
+              );
+            })}
+          </div>
         </label>{' '}
         <br />
         <label htmlFor="requiredExperience">
@@ -118,6 +153,11 @@ const AddRole = () => {
         <label htmlFor="driveStatus">
           Drive Status:
           <input type="text" name="drive_status" />
+        </label>{' '}
+        <br />
+        <label htmlFor="deadline">
+          Application deadline:
+          <input type="datetime-local" name="deadline" />
         </label>{' '}
         <br />
         <button type="submit">Done</button>

@@ -1,12 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { backendHost, branches, genders, programs } from '../Config.js';
+import { branches, genders, programs } from '../Config.js';
 import errorHandler from '../error/errors.js';
 import { extractFormData, formatDate } from '../helper/helpers.js';
 import Loading from '../Loading.js';
-import { getStudentDetails, setStudentDetails } from './student.js';
+import {
+  getStudentDetails,
+  setAdminVerified,
+  setStudentBlocked,
+  setStudentDetails,
+} from './student.js';
 
 // TODO MAKE REQUIRED FIELDS COMPULSORY
 
@@ -14,18 +19,12 @@ const StudentProfile = ({ admin }) => {
   const navigate = useNavigate();
   const currYear = new Date().getFullYear();
   const { enrollment_number } = useParams();
-  const link = `${backendHost + (admin ? '/admin' : '')}/student/${
-    enrollment_number ?? ''
-  }`;
 
   const [readOnly, setReadOnly] = useState(false);
 
-  const query = useQueryClient();
   const studentProfileQuery = useQuery(
-    ['studentDetails', enrollment_number],
-    () => {
-      return getStudentDetails(link);
-    },
+    ['studentDetails', admin, enrollment_number],
+    getStudentDetails,
     {
       onSuccess: (data) => {
         setReadOnly(!admin && data.studentDetails.admin_verified);
@@ -39,9 +38,29 @@ const StudentProfile = ({ admin }) => {
   const studentProfileMutation = useMutation(setStudentDetails, {
     onSuccess: (data) => {
       toast('Details submitted.');
-      query.setQueryData(['studentDetails', enrollment_number], (oldData) => {
-        Object.assign(oldData, data);
-      });
+      Object.assign(studentProfileQuery.data, data);
+    },
+    onError: (err) => {
+      errorHandler(err, navigate);
+    },
+  });
+
+  const adminVerifiedMutation = useMutation(setAdminVerified, {
+    onSuccess: (data) => {
+      toast(
+        `Student ${data.admin_verified ? 'verified.' : 'set as not verified.'}`
+      );
+      Object.assign(studentProfileQuery.data.studentDetails, data);
+    },
+    onError: (err) => {
+      errorHandler(err, navigate);
+    },
+  });
+
+  const studentBlockedMutation = useMutation(setStudentBlocked, {
+    onSuccess: (data) => {
+      toast(`Student ${data.blocked ? 'blocked.' : 'unblocked.'}`);
+      Object.assign(studentProfileQuery.data.studentDetails, data);
     },
     onError: (err) => {
       errorHandler(err, navigate);
@@ -57,7 +76,7 @@ const StudentProfile = ({ admin }) => {
         onSubmit={(event) => {
           event.preventDefault();
           const studDet = extractFormData(event.target);
-          studentProfileMutation.mutate({ studDet, link });
+          studentProfileMutation.mutate({ studDet, admin, enrollment_number });
         }}
       >
         <fieldset>
@@ -91,6 +110,7 @@ const StudentProfile = ({ admin }) => {
             <select
               name="gender"
               id="gender"
+              disabled={readOnly}
               defaultValue={
                 studentProfileQuery.data?.studentDetails.gender ?? ''
               }
@@ -126,6 +146,7 @@ const StudentProfile = ({ admin }) => {
             <select
               name="program"
               id="program"
+              disabled={readOnly}
               defaultValue={
                 studentProfileQuery.data?.studentDetails.program ?? ''
               }
@@ -146,6 +167,7 @@ const StudentProfile = ({ admin }) => {
             <select
               name="branch"
               id="branch"
+              disabled={readOnly}
               defaultValue={
                 studentProfileQuery.data?.studentDetails.branch ?? ''
               }
@@ -154,7 +176,7 @@ const StudentProfile = ({ admin }) => {
                 select
               </option>
               {branches.map((p, i) => (
-                <option key={i} value={p}>
+                <option key={i} value={`_${i}`}>
                   {p}
                 </option>
               ))}
@@ -219,19 +241,60 @@ const StudentProfile = ({ admin }) => {
             />
           </label>
           <br />
+          <label htmlFor="professional experience">
+            Professional Experience:
+            <input
+              readOnly={readOnly}
+              type="number"
+              min={0}
+              step={1}
+              name="experience"
+              defaultValue={studentProfileQuery.data?.studentDetails.experience}
+            />
+          </label>
+          <br />
         </fieldset>
         {readOnly ? <></> : <button type="submit">Submit</button>}
       </form>
-      <label htmlFor="admin verified">
-        Admin Verified
-        <button
-          required={true}
-          readOnly={!admin}
-          type="text"
-          defaultValue={'false'}
-          name="adminVerified"
-        />
-      </label>
+      {!readOnly && admin ? (
+        <div>
+          <p>
+            {studentProfileQuery.data?.studentDetails.admin_verified
+              ? 'Verified by Admin.'
+              : 'Not Verified by Admin.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              adminVerifiedMutation.mutate({
+                admin_verified:
+                  !studentProfileQuery.data?.studentDetails.admin_verified,
+                enrollment_number,
+              });
+            }}
+          >
+            {studentProfileQuery.data?.studentDetails.admin_verified
+              ? 'Unverify'
+              : 'Verify'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              studentBlockedMutation.mutate({
+                blocked: !studentProfileQuery.data?.studentDetails.blocked,
+                enrollment_number,
+              });
+            }}
+          >
+            {studentProfileQuery.data?.studentDetails.blocked
+              ? 'Unblock '
+              : 'Block '}{' '}
+            student
+          </button>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

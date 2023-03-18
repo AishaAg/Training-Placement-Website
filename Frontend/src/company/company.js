@@ -82,3 +82,16 @@ export const addCompanyDetails = async ({ addCompanyLink, compDet }) => {
   }
   return res.json();
 };
+
+export const deleteCompany = async ({ companyId }) => {
+  const res = await fetch(`${backendHost}/admin/company/${companyId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const err = new Error((await res.json()).message);
+    err.code = res.status;
+    throw err;
+  }
+  return;
+};

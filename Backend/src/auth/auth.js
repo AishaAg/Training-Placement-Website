@@ -54,6 +54,12 @@ export const login = async (req, res) => {
 		if (response.rows[0].password === null)
 			return res.status(403).json({ message: 'Please signup first.' });
 
+		if (response.rows[0].blocked === true)
+			return res.status(403).json({
+				message: 'User blocked. Please contact the TPO.',
+				link: '/login',
+			});
+
 		const authenticated = await verifyPassword(
 			req.body.password,
 			response.rows[0].password
@@ -70,7 +76,10 @@ export const login = async (req, res) => {
 			secure: true,
 			sameSite: 'none',
 		});
-		res.status(201).json({ admin: req.body.user === 'admin' });
+		res.status(201).json({
+			admin: req.body.user === 'admin',
+			link: response.rows[0].admin_verified ? '/' : '/profile',
+		});
 	} catch (e) {
 		console.log(e); // TODO
 		res.status(500).json({ message: 'Server error.' });

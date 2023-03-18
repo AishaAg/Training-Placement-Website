@@ -23,14 +23,17 @@ const Applications = () => {
   ) : (
     <div>
       {applications.map(({ role_id, role, company_name }) => (
-        <button
-          key={role_id}
-          onClick={() => {
-            navigate(`/student/application/${role_id}`, { replace: true });
-          }}
-        >
-          {company_name} {role}
-        </button>
+        <div key={role_id}>
+          <button
+            key={role_id}
+            onClick={() => {
+              navigate(`/student/application/${role_id}`, { replace: false });
+            }}
+          >
+            {company_name} {role}
+          </button>
+          <br />
+        </div>
       ))}
     </div>
   );

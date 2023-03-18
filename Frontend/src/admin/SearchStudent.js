@@ -17,7 +17,8 @@ const SearchStudent = () => {
           if (enrollNo === '') {
             toast('Please enter enrollment number.');
           }
-          enrollNo && navigate(`/admin/student/${enrollNo}`, { replace: true });
+          enrollNo &&
+            navigate(`/admin/student/${enrollNo}`, { replace: false });
         }}
       >
         Submit

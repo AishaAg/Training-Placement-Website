@@ -103,7 +103,7 @@ const SearchCompany = () => {
         onClick={() => {
           if (companyOptions.length === 1)
             navigate(`/admin/company/${companyId}/role/${roleOptions[0].id}`, {
-              replace: true,
+              replace: false,
             });
           else {
             toast('No records found.');

@@ -5,6 +5,7 @@ import errorHandler from '../error/errors.js';
 import { signup } from './auth.js';
 
 const Signup = () => {
+  localStorage.clear();
   const [enrollNo, setEnrollNo] = useState('');
   const signupMutation = useMutation(signup, {
     onSuccess: (data) => {

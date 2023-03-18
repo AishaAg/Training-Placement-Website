@@ -5,7 +5,6 @@ import queries from '../../db/queries';
 // '/company-names/:company_name?'
 export const getCompanyNames = async (req, res) => {
 	try {
-		console.log(req.params.company_name);
 		const companies = await pool.query(queries.getCompanyNames, [
 			`%${req.params.company_name ?? ''}%`,
 		]);
@@ -28,7 +27,6 @@ export const getRoleNames = async (req, res) => {
 				  )
 				: queries.getRoleNames(`%${req.query.role ?? ''}%`))
 		);
-		console.log(roles.rows);
 		res.status(200).json({
 			roles: roles.rows,
 		});
@@ -74,10 +72,25 @@ export const setCompanyDetails = async (req, res) => {
 export const addCompanyDetails = async (req, res) => {
 	try {
 		const companyId = await pool.query(queries.addCompanyDetails, [
-			req.body.name,
-			req.body.company_description,
+			req.body.compDet.name,
+			req.body.compDet.company_description,
 		]);
 		res.status(201).json({ companyId: companyId.rows[0].id });
+	} catch (e) {
+		console.log(e);
+		res.status(500).json({ message: 'Server error.' });
+	}
+};
+
+export const deleteCompany = async (req, res) => {
+	try {
+		const companyId = await pool.query(queries.deleteCompany, [
+			req.params.company_id,
+		]);
+		if (companyId.rowCount === 0) {
+			return res.status(404).json({ message: 'Company ID not found.' });
+		}
+		res.sendStatus(201);
 	} catch (e) {
 		console.log(e);
 		res.status(500).json({ message: 'Server error.' });

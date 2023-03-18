@@ -6,7 +6,7 @@ import { backendHost } from '../Config';
 import errorHandler from '../error/errors';
 import { extractFormData } from '../helper/helpers';
 import Loading from '../Loading';
-import { getCompanyDetails, setCompanyDetails } from './company';
+import { deleteCompany, getCompanyDetails, setCompanyDetails } from './company';
 
 const CompanyProfile = () => {
   const { company_id } = useParams();
@@ -34,8 +34,18 @@ const CompanyProfile = () => {
     onSuccess: (data) => {
       toast('Details submitted.');
       query.setQueryData(['companyProfile', company_id], (oldData) => {
-        Object.assign(oldData, data.companyDetails);
+        Object.assign(oldData.companyDetails, data.companyDetails);
       });
+    },
+    onError: (err) => {
+      errorHandler(err, navigate);
+    },
+  });
+
+  const deleteCompanyMutation = useMutation(deleteCompany, {
+    onSuccess: () => {
+      toast('Company deleted.');
+      navigate(`/admin/company/profile`);
     },
     onError: (err) => {
       errorHandler(err, navigate);
@@ -91,11 +101,19 @@ const CompanyProfile = () => {
           <button type="submit">Done</button>
         )}
       </form>
+      <button
+        type="button"
+        onClick={() => {
+          deleteCompanyMutation.mutate({ companyId: company_id });
+        }}
+      >
+        Delete Company
+      </button>
       <br />
       <button
         type="button"
         onClick={() => {
-          navigate(`/admin/company/${company_id}/role/new`, { replace: true }); // TODO : Connect to add new role form
+          navigate(`/admin/company/${company_id}/role/new`, { replace: false }); // TODO : Connect to add new role form
         }}
       >
         Add new Role
